@@ -1,8 +1,11 @@
 import getopt
 import subprocess
 import sys
-import os
+
 from bs4 import BeautifulSoup
+
+jacoco_html_report_path = "/app/build/reports/jacoco/jacocoTestReport/html/index.html"
+repo_path = "/Users/marturelo/Projects/android-showcase-mvvm"
 
 
 def main(argv):
@@ -34,42 +37,58 @@ def main(argv):
             elif opt in ("-v", "--verbose"):
                 arg_verbose = True
 
+        check_out_if_need(arg_branch, arg_verbose)
+        generate_jacoco_report(arg_verbose)
+        find_coverage(arg_verbose)
+
     except getopt.error as err:
         # output error, and return with an error code
         print(str(err))
-
-    if arg_branch is None:
-        print(arg_help)
-
-    check_out_if_need(arg_branch, arg_verbose)
-    generate_jacoco_report(arg_verbose)
-    find_coverage(arg_verbose)
+    except Exception as e:
+        print(e)
 
 
 def check_out_if_need(branch, verbose):
     # current branch
-    output = subprocess.getoutput("git branch --show")
+    command = "git -C {} branch --show".format(repo_path)
+    if verbose:
+        print("Executing:: {}".format(command))
+    output = subprocess.getoutput("git -C {} branch --show".format(repo_path))
+    if verbose:
+        print(output)
     if output != branch:
-        check_out = subprocess.getoutput("git checkout branch")
+        check_out = subprocess.getoutput("git -C {} checkout branch".format(repo_path))
+        if check_out.startswith('error: '):
+            raise Exception(check_out)
         if verbose:
             print(check_out)
 
 
 def generate_jacoco_report(verbose):
     # jacoco report
-    output = subprocess.getoutput("./gradlew jacocoTestReport")
+    command = "{}/gradlew -p {} jacocoTestReport".format(repo_path, repo_path)
+    if verbose:
+        print("Executing:: {}".format(command))
+    output = subprocess.getoutput(command)
+    if "FAILURE: " in output:
+        raise Exception(output)
     if verbose:
         print(output)
 
 
 def find_coverage(verbose):
-    jacoco_path = "/app/build/reports/jacoco/jacocoTestReport/html/index.html"
-    current_folder = os.getcwd()
+    jacoco_path = jacoco_html_report_path
+    current_folder = repo_path
     full_path = current_folder + jacoco_path
-    with open(full_path) as fp:
-        soup = BeautifulSoup(fp, 'html.parser')
-        td = soup.find("tfoot").find_all("td", )
-        print(td[2].text)
+    try:
+        if verbose:
+            print("Opening:: {}".format(full_path))
+        with open(full_path) as fp:
+            soup = BeautifulSoup(fp, 'html.parser')
+            td = soup.find("tfoot").find_all("td", )
+            print(td[2].text)
+    except IOError as e:
+        raise Exception(e)
 
 
 if __name__ == "__main__":
