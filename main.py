@@ -5,7 +5,7 @@ import sys
 from bs4 import BeautifulSoup
 
 jacoco_html_report_path = "/app/build/reports/jacoco/jacocoTestReport/html/index.html"
-repo_path = "/Users/marturelo/Projects/android-showcase-mvvm"
+repo_path = "./"
 
 
 def main(argv):
