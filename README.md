@@ -1,4 +1,6 @@
 # python-jacoco-android-coverage  
+## Dependencies
+- [BeautifulSoup](https://pypi.org/project/beautifulsoup4/)
 ## Installation  
 - Clone this repository in your folder (git clone git@github.com:AMarturelo/python-jacoco-android-coverage.git)  
 ## Run  
